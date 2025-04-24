@@ -1,0 +1,40 @@
+class factorial{
+    private static final int max=20;
+    private static long[] fac = new long[max+1];
+    
+    static {
+        fac[0]=1;
+        for(int i =1 ;i<=max;i++){
+        fac[i]=fac[i-1]*i;
+        }
+    }
+    
+    static long getfactorial(int x)
+    {
+        if(x<0){
+            throw new IllegalArgumentException("\nCannot divide by zero");
+            
+        }
+        if(x>max)
+        {
+            throw new IllegalArgumentException("\nResult will overflow");
+        }
+        return fac[x];
+    }
+    
+}
+public class Main{
+    public static void main(String[] args){
+        int testval[] = {0,5,20,21,-1};
+        
+        for(int x : testval)
+        {   
+            try{
+            System.out.println("factorial of " +x +" is " +factorial.getfactorial(x));
+            
+            } catch (IllegalArgumentException e) {
+                System.out.println("error for input:" +x +e.getMessage());
+            }
+        }
+    }
+}//https://github.com/Sidhant322129/lastday.git
