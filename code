@@ -153,4 +153,273 @@ public class Mathcals {
     }
 
 }
+////abstraction below///
+
+abstract class threedobjs{
+    
+    protected double l;
+    protected double w;
+    protected double h;
+    
+    threedobjs(double l, double w,double h){
+        this.l=l;
+        this.w=w;
+        this.h=h;
+        
+    }
+    abstract double sa();
+    abstract double vol();
+    
+}
+
+class box extends threedobjs{
+    box(double l,double w,double h)
+    {
+        super(l,w,h);
+    }
+    @Override
+    double sa()
+    {
+        return 2*(l*w + w*h + h*l);
+    }
+    @Override
+    double vol()
+    {
+        return l*w*h;
+    }
+    
+}
+
+class cube extends threedobjs
+{
+    cube(double l)
+    {
+        super(l,l,l);
+    }
+     @Override
+    double sa()
+    {
+        return 6*l*l;
+    }
+      @Override
+    double vol()
+    {
+        return l*l*l;
+    }
+}
+
+class cylinder extends threedobjs
+{
+    cylinder(double r,double h)
+    {
+        super(r,r,h);
+    }
+     @Override
+    double sa()
+    {
+        double r=l/2;
+        return (2*3.14*r*r) + (2*3.14*r*h);
+    }
+    @Override
+    double vol()
+    {   
+        double r=l/2;
+        return 3.14*r*r*h;
+    }
+    
+}
+
+class cone extends threedobjs
+{
+    cone(double r,double h)
+    {
+        super(r,r,h);
+    }
+    @Override
+    double sa()
+    {
+        double r=l/2;
+        double sa=Math.sqrt(r*r + h*h);
+        return 3.14*r*(r+sa);
+    }
+    @Override
+    double vol(){
+        double r=l/2;
+        return (1.0/3.0) * 3.14 * r*r*h;
+        
+    }
+}
+
+public class Threedobjs {
+    public static void main(String args[]){
+        threedobjs Box = new box(3,4,5);// constructors box
+        System.out.println("SA of the box:"+Box.sa());//parents class Box overridden by box method->sa.
+        System.out.println("volume of the box:"+Box.vol());
+        
+        threedobjs Cube = new cube(5);
+        System.out.println("SA of the cube:"+Cube.sa());
+        System.out.println("Volume of the cube:"+Cube.vol());
+        
+        threedobjs Cylinder = new cylinder(3,4);
+        System.out.println("SA of the cylinder:"+Cylinder.sa());
+        System.out.println("Volume of the cylinder:"+Cylinder.vol());
+        
+        threedobjs Cone = new cone(3,4);
+        System.out.println("SA of the cone:"+Cone.sa());
+        System.out.println("Volume of the cone:"+Cone.vol());
+        
+        
+    }
+}
+////-----abstraction---x------////
+
+////below interface----////
+interface Department {
+    void getDepartmentData(String name, String head);
+    void printDepartmentData();
+}
+
+class Hostel {
+    String hostelName, hostelLocation;
+    int noOfRooms;
+
+    void getHostelData(String name, String location, int rooms) {
+        hostelName = name;
+        hostelLocation = location;
+        noOfRooms = rooms;
+    }
+
+    void printHostelData() {
+        System.out.println("Hostel Name: " + hostelName);
+        System.out.println("Location: " + hostelLocation);
+        System.out.println("Rooms: " + noOfRooms);
+    }
+}
+
+class Student extends Hostel implements Department {
+    String studentName, regNo, electiveSubject;
+    double avgMarks;
+    String depName, depHead;
+
+    void getData(String name, String reg, String subject, double marks,
+                 String hName, String hLoc, int rooms,
+                 String dName, String dHead) {
+        studentName = name;
+        regNo = reg;
+        electiveSubject = subject;
+        avgMarks = marks;
+
+        getHostelData(hName, hLoc, rooms);
+        getDepartmentData(dName, dHead);
+    }
+
+    void printData() {
+        System.out.println("Name: " + studentName);
+        System.out.println("Reg No: " + regNo);
+        System.out.println("Elective: " + electiveSubject);
+        System.out.println("Avg Marks: " + avgMarks);
+        printHostelData();
+        printDepartmentData();
+    }
+
+    public void getDepartmentData(String name, String head) {
+        depName = name;
+        depHead = head;
+    }
+
+    public void printDepartmentData() {
+        System.out.println("Department: " + depName);
+        System.out.println("Head: " + depHead);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Student s = new Student();
+        s.getData("Alice", "REG123", "AI & ML", 87.5,
+                "Sunrise Hostel", "North Campus", 120,
+                "CSE", "Dr. Smith");
+
+        s.printData();
+    }
+}
+
+
+//////below string (multithreading)////
+import java.util.Random;
+
+// Interface for printable messages
+interface MessagePrinter {
+    void printMessage();
+}
+
+// Ping implementation
+class PingPrinter implements MessagePrinter, Runnable {
+    private static final String MESSAGE = "Ping";
+    private final Random random = new Random();
+
+    @Override
+    public void printMessage() {
+        System.out.println(MESSAGE);
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                printMessage();
+                Thread.sleep(1000 + random.nextInt(1000)); // Random delay between 1-2 seconds
+            }
+        } catch (InterruptedException e) {
+            System.out.println(MESSAGE + " thread interrupted");
+        }
+    }
+}
+
+// PONG implementation
+class PongPrinter implements MessagePrinter, Runnable {
+    private static final String MESSAGE = "PONG";
+    private final Random random = new Random();
+
+    @Override
+    public void printMessage() {
+        System.out.println(MESSAGE);
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                printMessage();
+                Thread.sleep(1000 + random.nextInt(1000)); // Random delay between 1-2 seconds
+            }
+        } catch (InterruptedException e) {
+            System.out.println(MESSAGE + " thread interrupted");
+        }
+    }
+}
+
+// Main class to start the threads
+public class PingPongMultiThread {
+    public static void main(String[] args) {
+        // Create runnable instances
+        Runnable pingTask = new PingPrinter();
+        Runnable pongTask = new PongPrinter();
+
+        // Create threads
+        Thread pingThread = new Thread(pingTask, "PingThread");
+        Thread pongThread = new Thread(pongTask, "PongThread");
+
+        // Start threads
+        pingThread.start();
+        pongThread.start();
+
+        // Add shutdown hook to handle graceful termination
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            pingThread.interrupt();
+            pongThread.interrupt();
+            System.out.println("\nProgram terminated gracefully");
+        }));
+    }
+}
 
