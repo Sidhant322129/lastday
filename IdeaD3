@@ -1,0 +1,161 @@
+//guha//
+#include <iostream>
+#include <cstdlib>
+#include <cmath>
+#include <ctime>
+
+using namespace std;
+
+// Constants
+const int W = 10; // Number of workers
+const int M = 3;  // Maximum number of machines
+
+// ---------------------------------------------
+// Generate a uniform random number between a and b
+double urand(double a, double b)
+{
+    return a + (b - a) * (rand() / (double)RAND_MAX);
+}
+
+// Generate a normally distributed random number (mean, standard deviation)
+double nrand(double mean, double sd)
+{
+    double u1 = rand() / (double)RAND_MAX;
+    double u2 = rand() / (double)RAND_MAX;
+    double z = sqrt(-2.0 * log(u1)) * cos(2 * 3.14159 * u2); // Box-Muller transform
+    return mean + z * sd;
+}
+
+// Generate a positive processing time using normal distribution
+double ptime()
+{
+    double t;
+    do {
+        t = nrand(20, 7); // Retry if the time is too small
+    } while (t < 5);
+    return t;
+}
+
+// ---------------------------------------------
+// Simulate the processing of n items
+void simulate(int n)
+{
+    double wfree[W] = {0}; // Workers' free times
+    double mfree[M] = {0}; // Machines' free times
+
+    // Try simulation with 1, 2, ..., M machines
+    for (int m = 1; m <= M; m++)
+    {
+        // Reset free times at the beginning of each simulation
+        for (int i = 0; i < W; i++) wfree[i] = 0;
+        for (int i = 0; i < M; i++) mfree[i] = 0;
+
+        double wait = 0; // Total waiting time
+        int done = 0;    // Items processed
+
+        // Process all items
+        while (done < n)
+        {
+            // Each worker tries to process an item
+            for (int i = 0; i < W && done < n; i++)
+            {
+                wfree[i] += urand(100, 300); // Worker becomes free after random delay
+
+                // Find the earliest available machine
+                int best = 0;
+                for (int j = 1; j < m; j++)
+                    if (mfree[j] < mfree[best])
+                        best = j;
+
+                double start = wfree[i];
+                if (start < mfree[best])
+                {
+                    wait += mfree[best] - start;
+                    start = mfree[best];
+                }
+
+                double pol = ptime();    // Processing time for the item
+                mfree[best] = start + pol; // Update when machine becomes free
+                wfree[i] = mfree[best];    // Update when worker becomes free
+
+                done++; // One item processed
+            }
+        }
+
+        cout << m << " machine(s): Average waiting time = " << wait / n << " seconds\n";
+    }
+}
+
+// ---------------------------------------------
+int main()
+{
+    srand(time(0)); // Seed the random number generator
+
+    int n;
+    cout << "Enter total number of items: ";
+    cin >> n; // Read number of items
+
+    simulate(n); // Run the simulation
+
+    return 0;
+}
+///---///sid//
+More updated ////
+#include <iostream>
+#include <cstdlib>
+#include <cmath>
+
+const int WORKERS = 10;
+const int MACHINES = 1;
+const int RUNS = 5;
+
+int getAssemblyTime() {
+    return 100 + rand() % 201;
+}
+
+int getPolishTime() {
+    double u1 = (rand() + 1.0) / (RAND_MAX + 2.0);
+    double u2 = (rand() + 1.0) / (RAND_MAX + 2.0);
+    double z = sqrt(-2.0 * log(u1)) * cos(2 * 3.1415926535 * u2);
+    int time = 20 + (int)(7 * z);
+    if (time < 5) return getPolishTime();
+    return time;
+}
+
+void simulate(int items, int runNumber) {
+    int workerFree[WORKERS] = {0}, machineFree[MACHINES] = {0}, totalWait = 0;
+
+    std::cout << "\n=== Run #" << runNumber << " ===\n";
+    for (int i = 0; i < items; ++i) {
+        int worker = 0, machine = 0;
+        for (int w = 1; w < WORKERS; ++w) if (workerFree[w] < workerFree[worker]) worker = w;
+        for (int m = 1; m < MACHINES; ++m) if (machineFree[m] < machineFree[machine]) machine = m;
+
+        int assembly = getAssemblyTime();
+        int finishAssembly = workerFree[worker] + assembly;
+        int startPolish = finishAssembly > machineFree[machine] ? finishAssembly : machineFree[machine];
+        int wait = startPolish - finishAssembly;
+        int polish = getPolishTime();
+        int finishPolish = startPolish + polish;
+
+        workerFree[worker] = finishPolish;
+        machineFree[machine] = finishPolish;
+        totalWait += wait;
+
+        std::cout << "\nItem #" << i + 1 << " (Worker " << worker + 1 << ")\n";
+        std::cout << "  Assembly: " << assembly << "s, Finish: " << finishAssembly << "s\n";
+        std::cout << "  Polish: " << polish << "s, Start: " << startPolish << "s, Finish: " << finishPolish << "s\n";
+        std::cout << "  Wait: " << wait << "s\n";
+    }
+    std::cout << "\nSummary Run #" << runNumber << ": Avg wait = " << (double)totalWait / items << "s\n";
+}
+
+int main() {
+    int items;
+    std::cout << "Enter number of items: ";
+    std::cin >> items;
+
+    for (int run = 1; run <= RUNS; ++run) simulate(items, run);
+
+    return 0;
+}
