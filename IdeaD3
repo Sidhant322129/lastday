@@ -276,3 +276,91 @@ int main() {
 
     return 0;
 }
+
+///PAUL USER INPUT ////
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+
+// Function to generate assembly time (100-300 seconds)
+double getAssemblyTime() {
+    return 100 + (rand() % 201); // Uniform between 100-300
+}
+
+// Function to generate polishing time (normal with mean=20, stddev=7, min=5)
+double getPolishTime() {
+    while (true) {
+        double u1 = (rand() + 1.0) / (RAND_MAX + 2.0);
+        double u2 = (rand() + 1.0) / (RAND_MAX + 2.0);
+        double z = sqrt(-2 * log(u1)) * cos(2 * M_PI * u2);
+        double time = 20 + 7 * z;
+        if (time >= 5) return time;
+    }
+}
+
+// Simulation function
+double simulate(int num_machines, int num_workers, int num_items) {
+    vector<double> machine_free(num_machines, 0);
+    vector<double> worker_ready(num_workers, 0);
+    double total_wait = 0;
+
+    for (int i = 0; i < num_items; i++) {
+        int worker = i % num_workers; // Round-robin worker assignment
+        double assembly_time = getAssemblyTime();
+        double polish_time = getPolishTime();
+
+        // Worker can't start next assembly until current item is polished
+        double start_assembly = worker_ready[worker];
+        double ready_at = start_assembly + assembly_time;
+
+        // Find earliest available machine
+        double earliest_free = machine_free[0];
+        for (int m = 1; m < num_machines; m++) {
+            if (machine_free[m] < earliest_free) {
+                earliest_free = machine_free[m];
+            }
+        }
+
+        // Calculate waiting time
+        double wait_time = max(0.0, earliest_free - ready_at);
+        total_wait += wait_time;
+
+        // Update machine and worker times
+        double finish_polish = max(ready_at, earliest_free) + polish_time;
+
+        for (int m = 0; m < num_machines; m++) {
+            if (machine_free[m] == earliest_free) {
+                machine_free[m] = finish_polish;
+                break;
+            }
+        }
+        worker_ready[worker] = finish_polish;
+    }
+
+    return total_wait / num_items;
+}
+
+int main() {
+    srand(time(0)); // Random seed
+
+    int num_machines, num_workers, num_items;
+
+    cout << "Enter the number of machines: ";
+    cin >> num_machines;
+
+    cout << "Enter the number of workers: ";
+    cin >> num_workers;
+
+    cout << "Enter the number of items: ";
+    cin >> num_items;
+
+    double avg_wait = simulate(num_machines, num_workers, num_items);
+    cout << "\nAverage waiting time per item: " << avg_wait << " seconds\n";
+
+    return 0;
+}
