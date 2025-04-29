@@ -1,3 +1,120 @@
+#include <iostream>
+#include <cstdlib>  // For rand() and srand()
+#include <ctime>    // For time()
+#include <cmath>    // For sqrt(), log(), cos(), sin()
+
+using namespace std;
+
+// Constants
+const int NUM_WORKERS = 10;
+const int MAX_MACHINES = 3;
+
+// Function to generate uniform random number between min and max
+double uniform_random(double min, double max) {
+    return min + (max - min) * (rand() / (double)RAND_MAX);
+}
+
+// Function to generate normal random number using Box-Muller Transform
+double normal_random(double mean, double stddev) {
+    double u1 = rand() / (double)RAND_MAX;
+    double u2 = rand() / (double)RAND_MAX;
+    double z0 = sqrt(-2.0 * log(u1)) * cos(2 * M_PI * u2);
+    return mean + z0 * stddev;
+}
+
+// Function to get polishing time (regenerating if < 5)
+double get_polishing_time() {
+    double t;
+    do {
+        t = normal_random(20.0, 7.0);
+    } while (t < 5.0);
+    return t;
+}
+
+int main() {
+    srand(time(0)); // Seed random number generator
+
+    int num_machines, total_items;
+    
+    // Input number of polishing machines
+    cout << "Enter number of polishing machines (1 to 3): ";
+    cin >> num_machines;
+    if (num_machines < 1 || num_machines > MAX_MACHINES) {
+        cout << "Invalid number of machines. Must be between 1 and 3." << endl;
+        return 1;
+    }
+
+    // Input total number of items
+    cout << "Enter total number of items to produce: ";
+    cin >> total_items;
+    if (total_items <= 0) {
+        cout << "Invalid number of items. Must be positive." << endl;
+        return 1;
+    }
+
+    // Initialize arrays
+    double worker_ready_time[NUM_WORKERS]; // when each worker becomes free
+    double machine_free_time[MAX_MACHINES]; // when each machine becomes free
+
+    for (int i = 0; i < NUM_WORKERS; i++)
+        worker_ready_time[i] = 0.0;
+    for (int i = 0; i < MAX_MACHINES; i++)
+        machine_free_time[i] = 0.0;
+
+    double total_waiting_time = 0.0;
+    int items_done = 0;
+
+    while (items_done < total_items) {
+        for (int w = 0; w < NUM_WORKERS && items_done < total_items; w++) {
+            // Assembly
+            double assembly_time = uniform_random(100.0, 300.0);
+            worker_ready_time[w] += assembly_time;
+
+            // Find earliest available polishing machine
+            int best_machine = -1;
+            double earliest_time = 1e9; // A large number
+
+            for (int m = 0; m < num_machines; m++) {
+                if (machine_free_time[m] < earliest_time) {
+                    earliest_time = machine_free_time[m];
+                    best_machine = m;
+                }
+            }
+
+            double start_polish_time = worker_ready_time[w];
+            double wait_time = 0.0;
+
+            if (start_polish_time < machine_free_time[best_machine]) {
+                // Machine not available yet, worker must wait
+                wait_time = machine_free_time[best_machine] - start_polish_time;
+                start_polish_time = machine_free_time[best_machine];
+            }
+
+            double polishing_time = get_polishing_time();
+
+            // Update machine's next free time
+            machine_free_time[best_machine] = start_polish_time + polishing_time;
+
+            // After polishing, worker can start next assembly
+            worker_ready_time[w] = machine_free_time[best_machine];
+
+            total_waiting_time += wait_time;
+            items_done++;
+        }
+    }
+
+    double average_waiting_time = total_waiting_time / total_items;
+    cout << "\nAverage waiting time per item: " << average_waiting_time << " seconds" << endl;
+
+    return 0;
+}
+
+
+
+
+
+
+
 //guha//
 #include <iostream>
 #include <cstdlib>
