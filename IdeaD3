@@ -364,3 +364,79 @@ int main() {
 
     return 0;
 }
+/// guha //// updated////
+#include <iostream>
+#include <cstdlib>
+#include <cmath>
+#include <ctime>
+using namespace std;
+
+const int W = 10;
+
+double urand(double a, double b) {
+    return a + (b - a) * (rand() / (double)RAND_MAX);
+}
+
+double nrand(double mean, double sd) {
+    double u1 = rand() / (double)RAND_MAX;
+    double u2 = rand() / (double)RAND_MAX;
+    double z = sqrt(-2.0 * log(u1)) * cos(2 * 3.14159 * u2);
+    return mean + z * sd;
+}
+
+double ptime() {
+    double t;
+    do {
+        t = nrand(20, 7);
+    } while (t < 5);
+    return t;
+}
+
+int main() {
+    srand(time(0));
+    
+    int n, M;
+    cout << "Enter total number of items: ";
+    cin >> n;
+
+    do {
+        cout << "Enter maximum number of machines (1 to 3 only): ";
+        cin >> M;
+    } while (M < 1 || M > 3);
+
+    for (int m = 1; m <= M; m++) {
+        double wfree[W] = {0}, mfree[3] = {0}; // Up to 3 machines max
+
+        for (int i = 0; i < W; i++) wfree[i] = 0;
+        for (int i = 0; i < m; i++) mfree[i] = 0;
+
+        double wait = 0;
+
+        for (int done = 0; done < n;) {
+            for (int i = 0; i < W && done < n; i++) {
+                wfree[i] += urand(100, 300);
+
+                int best = 0;
+                for (int j = 1; j < m; j++)
+                    if (mfree[j] < mfree[best])
+                        best = j;
+
+                double start = wfree[i];
+                if (start < mfree[best]) {
+                    wait += mfree[best] - start;
+                    start = mfree[best];
+                }
+
+                double pol = ptime();
+                mfree[best] = start + pol;
+                wfree[i] = mfree[best];
+
+                done++;
+            }
+        }
+
+        cout << m << " machine(s): Average waiting time = " << wait / n << " seconds\n";
+    }
+
+    return 0;
+}
