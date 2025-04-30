@@ -323,4 +323,89 @@ int main() {
     return 0;
 }
 
-//
+//bf//
+#include <stdio.h>
+#include <limits.h>
+#include <stdlib.h>
+
+void bellman(int edge[][3], int e, int v, int src, int table[][100], int parent[]) {
+    for(int i = 1; i <= v; i++) {
+        table[1][i] = (i == src) ? 0 : INT_MAX;
+    }
+
+    for(int k = 2; k <= v + 1; k++) {
+        for(int i = 1; i <= v; i++) {
+            table[k][i] = table[k-1][i];
+        }
+
+        for(int i = 0; i < e; i++) {
+            int u = edge[i][0];
+            int v_dest = edge[i][1];
+            int wt = edge[i][2];
+
+            if(table[k-1][u] != INT_MAX && table[k-1][u] + wt < table[k][v_dest]) {
+                table[k][v_dest] = table[k-1][u] + wt;
+                parent[v_dest] = u;
+            }
+        }
+    }
+}
+
+void path(int parent[], int x) {
+    if (parent[x] == -1) {
+        printf("%d", x);
+        return;
+    }
+    path(parent, parent[x]);
+    printf("->%d", x);
+}
+
+int main() {
+    int v, e, edge[100][3], table[100][100], src, parent[100];
+
+    printf("Enter the no of vertices and edges: ");
+    scanf("%d%d", &v, &e);
+
+    for(int i = 1; i <= v; i++)
+        parent[i] = -1;
+
+    printf("Enter the edges (src,dest,wt): ");
+    for(int i = 0; i < e; i++)
+        scanf("%d%d%d", &edge[i][0], &edge[i][1], &edge[i][2]);
+
+    printf("Enter the source: ");
+    scanf("%d", &src);
+
+    bellman(edge, e, v, src, table, parent);
+
+    // Print header row
+    printf("\n%-5s", "k");
+    for(int i = 1; i <= v; i++) {
+        printf("  %d->%-2d", src, i);
+    }
+    printf("\n");
+
+    // Print table rows
+    for(int i = 1; i <= v + 1; i++) {
+        printf("%-5d", i - 1);  // 0 to v
+        for(int j = 1; j <= v; j++) {
+            if(table[i][j] == INT_MAX)
+                printf("  %-5s", "INF");
+            else
+                printf("  %-5d", table[i][j]);
+        }
+        printf("\n");
+    }
+
+    // Print shortest paths
+    printf("\nShortest paths from source %d:\n", src);
+    for(int i = 1; i <= v; i++) {
+        if(i == src) continue;
+        path(parent, i);
+        printf(" (Cost: %d)\n", table[v + 1][i]);
+    }
+
+    return 0;
+}
+
+
